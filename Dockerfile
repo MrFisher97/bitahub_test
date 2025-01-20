@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM dockerproxy.net/library/ubuntu:24.04
 
 ENV TZ='CST-8'
 ENV DEBIAN_FRONTEND=noninteractive
