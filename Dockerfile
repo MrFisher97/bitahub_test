@@ -1,47 +1,31 @@
-FROM pytorch/pytorch:2.0.1-cuda11.7-cudnn8-devel
+FROM mirrors.ustc.edu.cn/ubuntu:22.04
 
-ENV PATH /root/.local/bin:$PATH
-ENV LD_LIBRARY_PATH /usr/lib/x86_64-linux-gnu:/usr/local/cuda-11.3/lib64:$LD_LIBRARY_PATH
+ENV TZ='CST-8'
+ENV DEBIAN_FRONTEND=noninteractive
 
-ENV TZ=Asia/Shanghai
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+RUN sed -i 's@//.*archive.ubuntu.com@//mirrors.ustc.edu.cn@g' /etc/apt/sources.list \
+	&& apt update && apt -y install libgl1 screen
 
-RUN sed -i 's/archive.ubuntu.com/mirrors.ustc.edu.cn/g' /etc/apt/sources.list && \
-    #PIP_INSTALL_QH="python -m pip --no-cache-dir install --upgrade -i https://pypi.tuna.tsinghua.edu.cn/simple" && \
-    PIP_INSTALL="python -m pip --no-cache-dir install" && \
-    CONDA_INSTALL="conda install -y" && \
-    apt-get update && \
-    apt-get install -y ffmpeg libsm6 libxext6 openssh-server && \
-    pip install --upgrade pip -i https://mirrors.aliyun.com/pypi/simple/ && \
-	$PIP_INSTALL \
-        numpy \
-        pillow \
-        pandas \
-        visdom \
-        opencv_python \
-        scikit-learn \
-        scipy \
-        matplotlib \
-        h5py \
-	hdf5plugin\
-        tqdm \
-        argparse \
-        progress \
-        progressbar2 \
-        scikit-image \
-        prettytable \
-        timm \
-        tensorboard \
-        openmim \
-	determined\
-        torch_geometric \
-        jupyterlab \
-        -i https://mirrors.aliyun.com/pypi/simple/ -f https://download.pytorch.org/whl/torch_stable.html && \
-    mim install mmcv==2.0.0 && \
-    $PIP_INSTALL \
-        pyg-lib \
-        torch_scatter \
-        torch_sparse \
-        torch_cluster \
-        torch_spline_conv \
-        -f https://data.pyg.org/whl/torch-2.0.0+cu117.html
+RUN apt-get update \
+	&& apt-get install -y \
+	curl \
+	git \
+	golang \
+	sudo \
+	vim \
+	wget \
+	&& rm -rf /var/lib/apt/lists/*
+
+RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-ubuntu2204.pin \
+	&& mv cuda-ubuntu2204.pin /etc/apt/preferences.d/cuda-repository-pin-600 \
+	&& wget https://developer.download.nvidia.com/compute/cuda/12.6.2/local_installers/cuda-repo-ubuntu2204-12-6-local_12.6.2-560.35.03-1_amd64.deb \
+	&& dpkg -i cuda-repo-ubuntu2204-12-6-local_12.6.2-560.35.03-1_amd64.deb \
+	&& cp /var/cuda-repo-ubuntu2204-12-6-local/cuda-*-keyring.gpg /usr/share/keyrings/ \
+	&& apt update && apt -y install cuda-toolkit-12-6
+
+ARG USER=coder
+RUN useradd --groups sudo --no-create-home --shell /bin/bash ${USER} \
+	&& echo "${USER} ALL=(ALL) NOPASSWD:ALL" >/etc/sudoers.d/${USER} \
+	&& chmod 0440 /etc/sudoers.d/${USER}
+USER ${USER}
+WORKDIR /home/${USER}
