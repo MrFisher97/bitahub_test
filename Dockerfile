@@ -1,4 +1,4 @@
-FROM mirrors.ustc.edu.cn/ubuntu:22.04
+FROM ubuntu:22.04
 
 ENV TZ='CST-8'
 ENV DEBIAN_FRONTEND=noninteractive
